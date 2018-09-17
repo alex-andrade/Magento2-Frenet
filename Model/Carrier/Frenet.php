@@ -47,42 +47,39 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 	}
 	
 	public function collectRates(RateRequest $request)
-	{
-
-		
+	{		
 		$cepDestino = $request->_data["dest_postcode"]; // get the shipping post code from the checkout page		
 		if (!$this->isActive() || !$cepDestino)
 		{
 			return false;
 		}
 
-		 $allItems = $request->getAllItems(); // get all items from the cart		
+		 $allItems = $request->getAllItems(); // get all items from the cart
+		 $productsPrice = $request->_data["package_value_with_discount"];
+
+		
 		 
 		$token = $this->getConfigData('token'); // get the token from the admin configuration
 		$cepOrigem = $this->getConfigData('cep_origem'); //get the post code from the admin configuration
 		$this->frenetHelper->setToken($token);	//sets the token to the frenet helper, where the module will connect to the Frenet API
 
-		$optios = $this->frenetHelper->getAvailableOptions(); 
+		$availableOptions = $this->frenetHelper->getAvailableOptions(); 
 		
-		$prices = $this->frenetHelper->getOptions($cepOrigem, $cepDestino, $allItems); // get the prices and options from Frenet API
+		$options = $this->frenetHelper->getOptions($cepOrigem, $cepDestino, $allItems, $productsPrice); // get the prices and options from Frenet API
+	
 
+		$result = $this->_rateResultFactory->create(); // array de metodos
 
-		$result = $this->_rateResultFactory->create();
-
-		$shippingPrice = $this->getConfigData('price');
-		
-		$method = $this->_rateMethodFactory->create();
-		
-		$method->setCarrier($this->getCarrierCode());
-		$method->setCarrierTitle($this->getConfigData('title'));
-		
-		$method->setMethod($this->getCarrierCode());
-		$method->setMethodTitle($this->getConfigData('name'));
-		
-		$method->setPrice($shippingPrice);
-		$method->setCost($shippingPrice);
-		
-		$result->append($method);
+		foreach ($options->ShippingSevicesArray as $option) {
+			$method = $this->_rateMethodFactory->create();
+			$method->setCarrier($this->getCarrierCode()); // Info que esta em etc/adminhtml/system.xml
+			$method->setCarrierTitle($option->Carrier);
+			$method->setMethod($option->Carrier . " " . $option->ServiceCode);
+			$method->setMethodTitle($option->ServiceDescription);
+			$method->setPrice($option->ShippingPrice);
+			$method->setCost($option->ShippingPrice);
+			$result->append($method);
+		}																		
 		return $result;
 	}
 }
