@@ -54,16 +54,13 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 			return false;
 		}
 
-		 $allItems = $request->getAllItems(); // get all items from the cart
-		 $productsPrice = $request->_data["package_value_with_discount"];
-
-		
-		 
+		$allItems = $request->getAllItems(); // get all items from the cart
+		$productsPrice = $request->_data["package_value_with_discount"];				 
 		$token = $this->getConfigData('token'); // get the token from the admin configuration
 		$cepOrigem = $this->getConfigData('cep_origem'); //get the post code from the admin configuration
-		$this->frenetHelper->setToken($token);	//sets the token to the frenet helper, where the module will connect to the Frenet API
 
-		$availableOptions = $this->frenetHelper->getAvailableOptions(); 
+		$this->frenetHelper->setToken($token);	//sets the token to the frenet helper, where the module will connect to the Frenet API
+	
 		
 		$options = $this->frenetHelper->getOptions($cepOrigem, $cepDestino, $allItems, $productsPrice); // get the prices and options from Frenet API
 	
