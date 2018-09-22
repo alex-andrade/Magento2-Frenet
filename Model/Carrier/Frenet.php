@@ -65,18 +65,39 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 		$options = $this->frenetHelper->getOptions($cepOrigem, $cepDestino, $allItems, $productsPrice); // get the prices and options from Frenet API
 	
 
+		
+		$extraDeliveryDays = $this->getConfigData('extra_days');
+		$extraDeliveryCost = $this->getConfigData('extra_cost');		
+
 		$result = $this->_rateResultFactory->create(); // array de metodos
 
 		foreach ($options->ShippingSevicesArray as $option) {
+			$deliveryText = $this->DeliveryString($option, $extraDeliveryDays); //Gera o texto de tempo de entrea
+
 			$method = $this->_rateMethodFactory->create();
 			$method->setCarrier($this->getCarrierCode()); // Info que esta em etc/adminhtml/system.xml
 			$method->setCarrierTitle($option->Carrier);
-			$method->setMethod($option->Carrier . " " . $option->ServiceCode);
-			$method->setMethodTitle($option->ServiceDescription);
-			$method->setPrice($option->ShippingPrice);
-			$method->setCost($option->ShippingPrice);
+			/**
+			 * Abaixo, é retirado o '_' e transformado o code em lowercase
+			 */
+			$code = str_ireplace('_','', strtolower($option->Carrier . " " . $option->ServiceCode));
+			$method->setMethod($code);
+			$method->setMethodTitle($option->ServiceDescription . $deliveryText);
+			$method->setPrice($option->ShippingPrice + $extraDeliveryCost);
+			$method->setCost($option->ShippingPrice + $extraDeliveryCost);
 			$result->append($method);
 		}																		
+		return $result;
+	}
+
+	private function DeliveryString($option, $extraDeliveryDays){
+		$days = $option->DeliveryTime + $extraDeliveryDays;
+		if ($days == 1) {
+			$result = " Prazo de entrega: 1 dia útel";
+			return $result;
+		}
+
+		$result = " Prazo de entrega: " . $days . " dias úteis";
 		return $result;
 	}
 }

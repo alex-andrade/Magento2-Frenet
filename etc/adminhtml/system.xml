@@ -17,8 +17,13 @@
 						<label>Method Name</label>
 					</field>
 
-					<field id="price" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Shipping Cost</label>
+					<field id="extra_cost" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
+						<label>Custo extra de entrega</label>
+						<validate>validate-number validate-zero-or-greater</validate>
+					</field>
+
+					<field id="extra_days" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
+						<label>Dias extra de entrega</label>
 						<validate>validate-number validate-zero-or-greater</validate>
 					</field>
 
