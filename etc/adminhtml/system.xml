@@ -2,7 +2,7 @@
 	<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Config/etc/system_file.xsd">
 		<system>
 			<section id="carriers" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-				<group id="magecommerce_frenet" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+				<group id="frenet" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>Frenet</label>
 					<field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
 						<label>Enabled</label>

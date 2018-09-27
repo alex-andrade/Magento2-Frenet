@@ -18,7 +18,7 @@ use Magecommerce\Frenet\Helper\FrenetHelper;
 
 class Frenet extends AbstractCarrier implements CarrierInterface
 {
-	protected $_code = 'magecommerce_frenet';
+	protected $_code = 'frenet';
 	protected $_isFixed = true;
 	protected $_rateResultFactory;
 	protected $_rateMethodFactory;
@@ -80,7 +80,7 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 			/**
 			 * Abaixo, é retirado o '_' e transformado o code em lowercase
 			 */
-			$code = str_ireplace('_','', strtolower($option->Carrier . " " . $option->ServiceCode));
+			$code = str_ireplace('_','', strtolower($option->Carrier . $option->ServiceCode)); // 
 			$method->setMethod($code);
 			$method->setMethodTitle($option->ServiceDescription . $deliveryText);
 			$method->setPrice($option->ShippingPrice + $extraDeliveryCost);
@@ -100,4 +100,8 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 		$result = " Prazo de entrega: " . $days . " dias úteis";
 		return $result;
 	}
+
+    public function proccessAdditionalValidation(\Magento\Framework\DataObject $request) {
+        return true;
+    }
 }
