@@ -48,12 +48,6 @@
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 					</field>
 
-					<field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Sort Order</label>
-					</field>
-					<field id="cep_origem" translate="label" type="text" sortOrder="101" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Cep de Origem</label>
-					</field>
 					<field id="token" translate="label" type="text" sortOrder="102" showInDefault="1" showInWebsite="1" showInStore="0">
 						<label>Token</label>
 					</field>
