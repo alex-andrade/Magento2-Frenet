@@ -80,7 +80,7 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 			/**
 			 * Abaixo, é retirado o '_' e transformado o code em lowercase
 			 */
-			$code = str_ireplace('_','', strtolower($option->Carrier . $option->ServiceCode)); // 
+			$code = str_ireplace('_','', strtolower($option->Carrier . " " . $option->ServiceCode)); // 
 			$method->setMethod($code);
 			$method->setMethodTitle($option->ServiceDescription . $deliveryText);
 			$method->setPrice($option->ShippingPrice + $extraDeliveryCost);
