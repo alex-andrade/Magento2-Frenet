@@ -10,5 +10,5 @@ php bin/magento cache:clean <br>
 ## Configuração
 Faça o login como admin <br>
 Navegue até Lojas->Configuração->Vendas->Métodos de envio->Frenet<br>
-Preenhca os dados, tais como o Token.
+Preenhca os dados, tais como o Token. <br>
 Preencher endereço da loja em Lojas->Configuração->Vendas->Detalhes do Envio->Origem
