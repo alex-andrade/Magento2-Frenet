@@ -8,6 +8,7 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Config;
 use Magento\Shipping\Model\Rate\ResultFactory;
+use Magento\Shipping\Model\Tracking\Result\StatusFactory;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
 use Magento\Quote\Model\Quote\Address\RateResult\Method;
@@ -23,11 +24,14 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 	protected $_rateResultFactory;
 	protected $_rateMethodFactory;
 	protected $frenetHelper;
-
+	private $trackStatusFactory;
+	private $token;
+	
 	public function __construct(
 	ScopeConfigInterface $scopeConfig,
 	ErrorFactory $rateErrorFactory,
 	LoggerInterface $logger,
+	StatusFactory $trackStatusFactory,
 	ResultFactory $rateResultFactory,
 	MethodFactory $rateMethodFactory,
 	FrenetHelper $frenetHelper,
@@ -35,6 +39,7 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 	)
 
 	{		
+		$this->trackStatusFactory = $trackStatusFactory;
 		$this->_rateResultFactory = $rateResultFactory;
 		$this->_rateMethodFactory = $rateMethodFactory;
 		$this->frenetHelper = $frenetHelper;
@@ -80,8 +85,8 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 			/**
 			 * Abaixo, é retirado o '_' e transformado o code em lowercase
 			 */
-			$code = str_ireplace('_','', strtolower($option->Carrier . " " . $option->ServiceCode)); // 
-			$method->setMethod($code);
+			
+			$method->setMethod($option->ServiceCode);
 			$method->setMethodTitle($option->ServiceDescription . $deliveryText);
 			$method->setPrice($option->ShippingPrice + $extraDeliveryCost);
 			$method->setCost($option->ShippingPrice + $extraDeliveryCost);
@@ -100,8 +105,22 @@ class Frenet extends AbstractCarrier implements CarrierInterface
 		$result = " Prazo de entrega: " . $days . " dias úteis";
 		return $result;
 	}
-
-    public function proccessAdditionalValidation(\Magento\Framework\DataObject $request) {
+	public function isTrackingAvailable()
+    {
         return true;
+	}
+	
+	public function getTrackingInfo($trackingNumber)
+    {
+		/** @var \Magento\Shipping\Model\Tracking\Result\Status $tracking */
+		$token = $this->getConfigData('token');
+		$this->frenetHelper->setToken($token);
+
+        $tracking = $this->trackStatusFactory->create();
+        $tracking->setCarrier($this->_code);
+		$tracking->setTracking($trackingNumber);
+		
+		$tracking->setProgressdetail($this->frenetHelper->getTracking($trackingNumber));
+        return $tracking;
     }
 }

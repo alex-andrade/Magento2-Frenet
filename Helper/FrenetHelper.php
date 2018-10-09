@@ -78,23 +78,29 @@
 
 		}
 
-		private function getAttributeValue($productId, $attributeId){
+		private function getConnection(){
+
 			$objectManager = \Magento\Framework\App\ObjectManager::getInstance(); // Instance of object manager
 			$resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
 			$connection = $resource->getConnection();
-			//SELECT value From catalog_product_entity_decimal where attribute_id=136 and entity_id=1
-			$tableName = $resource->getTableName('catalog_product_entity_decimal');
-			$sql = "SELECT value FROM " . $tableName . " where attribute_id=$attributeId and entity_id=$productId";
+
+			return $connection;
+		}
+
+		private function getAttributeValue($productId, $attributeId){
+
+			$connection = $this->getConnection();
+
+			$sql = "SELECT value FROM catalog_product_entity_decimal where attribute_id=$attributeId and entity_id=$productId";
 			$result = $connection->fetchAll($sql);
 			return $result[0]["value"];
 		}
 		
 		private function getAttributeIdByCode($attributeCode){
-			$objectManager = \Magento\Framework\App\ObjectManager::getInstance(); // Instance of object manager
-			$resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-			$connection = $resource->getConnection();
-			$tableName = $resource->getTableName('eav_attribute'); //gives table name with prefix
-			$sql = "Select attribute_id FROM " . $tableName . " WHERE attribute_code = '" . $attributeCode . "'";
+
+			$connection = $this->getConnection();
+			
+			$sql = "Select attribute_id FROM eav_attribute WHERE attribute_code = '" . $attributeCode . "'";
 			$result = $connection->fetchAll($sql); // gives associated array, table fields as key in array.
 			
 			return $result[0]["attribute_id"];
@@ -129,5 +135,68 @@
  			$response = json_decode($response);
 
 			return $response;
+		}
+
+		/**
+		 * gets the method number, requested to get trancking info from Frenet's API
+		 */
+
+		private function getMethod($number){
+			$connection = $this->getConnection();
+			$sql = "SELECT shipping_method FROM sales_order inner join sales_shipment_track on sales_order.entity_id = sales_shipment_track.order_id where sales_shipment_track.track_number = '" . $number . "'";
+			$result = $connection->fetchAll($sql);
+			return $result[0]['shipping_method'];
+		}
+
+		public function getTracking($number){
+						$method = $this->getMethod($number);
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, "http://api.frenet.com.br/tracking/trackinginfo");
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			curl_setopt($ch, CURLOPT_HEADER, FALSE);
+
+			curl_setopt($ch, CURLOPT_POST, TRUE);
+
+			$dados = array("ShippingServiceCode" => $method,
+			"TrackingNumber" => $number);
+			$dados = json_encode($dados);
+
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $dados);
+
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+			"Content-Type: application/json",
+			"token: $this->token"
+			));
+
+			$response = curl_exec($ch);
+			$response = json_decode($response);
+
+			curl_close($ch);
+
+			$progress = array();
+
+			if (!isset($response->TrackingEvents)) { //When API returns an error or an empty JSON
+				return null;
+			}
+
+			foreach ($response->TrackingEvents as $event) {
+				$dateTime = $this->separateDateTime($event->EventDateTime); // [0] date, [1] time
+
+				$progress[] = ["deliverydate" => $dateTime[0],
+				"deliverytime" => $dateTime[1],
+				"deliverylocation" => $event->EventLocation,
+				"activity" => $event->EventDescription];
+			}
+
+
+
+			return $progress;
+			
+		}
+
+		private function separateDateTime($dateTime){
+			$dateTime = explode(" ", $dateTime);
+			$dateTime[0] = str_replace("/", "-", $dateTime[0]);
+			return $dateTime;
 		}
 	}
